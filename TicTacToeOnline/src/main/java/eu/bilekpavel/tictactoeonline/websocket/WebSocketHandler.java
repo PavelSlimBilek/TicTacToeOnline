@@ -77,33 +77,41 @@ public class WebSocketHandler extends TextWebSocketHandler {
         int x = Integer.parseInt(payload.split("-")[0]);
         int y = Integer.parseInt(payload.split("-")[1]);
 
-        if (game.makeMove(x, y)) {
+        if (!game.makeMove(x, y)) {
+            session.sendMessage(
+                    new TextMessage("[\"ERROR\", \"move not possible\"]")
+            );
+            return;
+        }
+
+        SESSIONS.values().forEach(s -> {
+            try {
+                s.sendMessage(
+                        new TextMessage(
+                                String.format("[\"MOVE\",\"%d-%d\",\"%c\"]",
+                                        x,
+                                        y,
+                                        game.currentPlayer().getSymbol())
+                        )
+                );
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        if (game.doesPlayerWin()) {
             SESSIONS.values().forEach(s -> {
                 try {
-                    s.sendMessage(
-                            new TextMessage(
-                                    String.format("[\"MOVE\",\"%d-%d\",\"%c\"]", x, y, game.currentPlayer().getSymbol())
-                            )
-                    );
-
+                    s.sendMessage(new TextMessage("[\"ENDED\"]"));
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             });
 
-            if (game.doesPlayerWin()) {
-                SESSIONS.values().forEach(s -> {
-                    try {
-                        s.sendMessage(new TextMessage("[\"ENDED\"]"));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-
-                this.game = new Game(game.getP2(), game.getP1());
-                return;
-            }
-            game.switchPlayer();
+            this.game = new Game(game.getP2(), game.getP1());
+            return;
         }
+        game.switchPlayer();
     }
 }
