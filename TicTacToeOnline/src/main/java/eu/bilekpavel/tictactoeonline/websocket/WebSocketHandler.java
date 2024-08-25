@@ -16,6 +16,11 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     private static final Map<Player, WebSocketSession> SESSIONS = Collections.synchronizedMap(new HashMap<>());
     private Game game;
+    private final MessageFactory MESSAGE;
+
+    public WebSocketHandler(MessageFactory messageFactory) {
+        this.MESSAGE = messageFactory;
+    }
 
     @Override
     public void afterConnectionEstablished(@NonNull WebSocketSession session) {
@@ -41,13 +46,8 @@ public class WebSocketHandler extends TextWebSocketHandler {
             System.out.println("Game started");
             SESSIONS.forEach((key, value) -> {
                 try {
-                    value.sendMessage(
-                            new TextMessage("[\"STARTED\"]"));
-                    value.sendMessage(
-                            new TextMessage(
-                                    String.format("[\"SYMBOL\",\"%c\"]", key.getSymbol())
-                            )
-                    );
+                    value.sendMessage(MESSAGE.started());
+                    value.sendMessage(MESSAGE.symbol(key.getSymbol()));
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -68,9 +68,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         System.out.println("Client message: " + payload);
 
         if (!game.currentPlayer().getSession().equals(session.getId())) {
-            session.sendMessage(
-                    new TextMessage("[\"ERROR\",\"not your turn\"]")
-            );
+            session.sendMessage(MESSAGE.error("Not your turn!"));
             return;
         }
 
@@ -78,22 +76,13 @@ public class WebSocketHandler extends TextWebSocketHandler {
         int y = Integer.parseInt(payload.split("-")[1]);
 
         if (!game.makeMove(x, y)) {
-            session.sendMessage(
-                    new TextMessage("[\"ERROR\", \"move not possible\"]")
-            );
+            session.sendMessage(MESSAGE.error("Move not possible!"));
             return;
         }
 
         SESSIONS.values().forEach(s -> {
             try {
-                s.sendMessage(
-                        new TextMessage(
-                                String.format("[\"MOVE\",\"%d-%d\",\"%c\"]",
-                                        x,
-                                        y,
-                                        game.currentPlayer().getSymbol())
-                        )
-                );
+                s.sendMessage(MESSAGE.move(x, y, game.currentPlayer().getSymbol()));
 
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -103,7 +92,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
         if (game.doesPlayerWin()) {
             SESSIONS.values().forEach(s -> {
                 try {
-                    s.sendMessage(new TextMessage("[\"ENDED\"]"));
+                    s.sendMessage(MESSAGE.ended());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
