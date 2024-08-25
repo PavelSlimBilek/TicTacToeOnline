@@ -32,7 +32,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
         // TODO belongs to another place
         if (game == null) {
-            game = new Game(p, 3);
+            game = new Game(p);
             return;
         }
 
@@ -90,17 +90,35 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     throw new RuntimeException(e);
                 }
             });
+
+            if (game.doesPlayerWin()) {
+                SESSIONS.values().forEach(s -> {
+                    try {
+                        s.sendMessage(new TextMessage("[\"ENDED\"]"));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+
+                this.game = new Game(game.getP2(), game.getP1());
+
+                SESSIONS.values().forEach(s -> {
+                    try {
+                        s.sendMessage(
+                                new TextMessage(
+                                        String.format("[\"MOVE\",\"%d-%d\",\"%c\"]", x, y, game.currentPlayer().getSymbol())
+                                )
+                        );
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
+
             game.switchPlayer();
         }
 
-        if (game.doesPlayerWin()) {
-            SESSIONS.values().forEach(s -> {
-                try {
-                    s.sendMessage(new TextMessage("[\"ENDED\"]"));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-        }
+
     }
 }

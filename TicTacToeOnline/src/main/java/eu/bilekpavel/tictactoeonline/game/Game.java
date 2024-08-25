@@ -9,7 +9,7 @@ public class Game {
     private String id;
 
     private Plan plan;
-    private final int size;
+    private int size;
 
     private GameState state;
     private int turn;
@@ -23,10 +23,25 @@ public class Game {
     private Player currentPlayer;
     private Player winner;
 
-    public Game(Player player, int size) {
+    public Game(Player player1, Player player2) {
+        this.player1 = player1;
+        currentPlayer = player1;
+
+        this.player2 = player2;
+
+        this.size = 3;
+        state = GameState.IN_PROGRESS;
+        plan = new Plan(size);
+        turn = 1;
+
+        player1Symbol = 'O';
+        player2Symbol = 'X';
+    }
+
+    public Game(Player player) {
         player1 = player;
         currentPlayer = player1;
-        this.size = size;
+        this.size = 3;
         state = GameState.IN_PROGRESS;
         plan = new Plan(size);
         turn = 1;

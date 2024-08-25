@@ -50,6 +50,7 @@
 
             if (parsedMsg[0] === 'ENDED') {
                 document.getElementById("message").innerText = 'Game has ended';
+                render();
             }
 
             if (parsedMsg[0] === 'MOVE') {
