@@ -101,24 +101,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 });
 
                 this.game = new Game(game.getP2(), game.getP1());
-
-                SESSIONS.values().forEach(s -> {
-                    try {
-                        s.sendMessage(
-                                new TextMessage(
-                                        String.format("[\"MOVE\",\"%d-%d\",\"%c\"]", x, y, game.currentPlayer().getSymbol())
-                                )
-                        );
-
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                return;
             }
-
             game.switchPlayer();
         }
-
-
     }
 }
