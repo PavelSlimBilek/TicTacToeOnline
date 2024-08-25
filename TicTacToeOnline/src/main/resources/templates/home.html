@@ -3,33 +3,94 @@
     <head>
         <meta charset="UTF-8">
         <title>Home</title>
+
+        <style>
+            #board {
+                display: grid;
+                border: 2px solid black;
+                width: 30rem;
+                height: 30rem;
+            }
+
+            .cell {
+                border: 1px solid black;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        </style>
+
     </head>
     <body>
         <nav></nav>
         <main>
             <h1>Tic Tac Toe</h1>
+            <h2 id="message"></h2>
+            <h2 id="symbol"></h2>
+            <div id="board">
+            </div>
         </main>
     </body>
 
     <script>
 
         let socket = new WebSocket('ws://localhost:8080/ws');
-        let sampleMessage = 'My message';
+        let boardSize = 3;
 
         socket.addEventListener('open', function (event) {
             console.log('WebSocket connection opened:', event);
-
-            console.log('Sending message:', sampleMessage);
-            socket.send(sampleMessage);
         });
 
         socket.addEventListener('message', function (message) {
             console.log('Message from relay:', message.data);
+            let parsedMsg = JSON.parse(message.data);
+            if (parsedMsg[0] === 'STARTED') {
+                render();
+            }
+
+            if (parsedMsg[0] === 'ENDED') {
+                document.getElementById("message").innerText = 'Game has ended';
+            }
+
+            if (parsedMsg[0] === 'MOVE') {
+                let id = parsedMsg[1];
+                document.getElementById(id).innerText = parsedMsg[2];
+            }
+
+            if (parsedMsg[0] === 'ERROR') {
+                document.getElementById('message').innerText = parsedMsg[1];
+            }
+
+            if (parsedMsg[0] === 'SYMBOL') {
+                document.getElementById('symbol').innerText = parsedMsg[1];
+            }
         });
 
         socket.addEventListener('close', function (message) {
             console.log('WebSocket connection closed:', message);
         });
+
+        function render() {
+            const board = document.getElementById('board');
+            board.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+            board.style.gridTemplateRows = `repeat(${boardSize}, 1fr)`;
+
+            // Clear any existing cells
+            board.innerHTML = '';
+
+            for (let i = 0; i < boardSize; i++) {
+                for (let j = 0; j < boardSize; j++) {
+                    let cell = document.createElement('div');
+                    cell.id = `${i}-${j}`; // Use more distinct ID format
+                    cell.classList.add('cell');
+                    cell.addEventListener('click', function() {
+                        console.log(cell.id);
+                        socket.send(cell.id)
+                    });
+                    board.appendChild(cell);
+                }
+            }
+        }
 
     </script>
 

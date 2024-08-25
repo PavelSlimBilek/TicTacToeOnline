@@ -1,21 +1,15 @@
 package eu.bilekpavel.tictactoeonline.player;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
-@Entity
-@NoArgsConstructor
+@Getter
 public class Player {
 
-    @Id
-    @GeneratedValue
-    private String id;
-
     private String session;
+    private char symbol;
 
-    public Player(String session) {
+    public Player(String session, char symbol) {
         this.session = session;
+        this.symbol = symbol;
     }
 }
