@@ -10,4 +10,27 @@
             <h1>Tic Tac Toe</h1>
         </main>
     </body>
+
+    <script>
+
+        let socket = new WebSocket('ws://localhost:8080/ws');
+        let sampleMessage = 'My message';
+
+        socket.addEventListener('open', function (event) {
+            console.log('WebSocket connection opened:', event);
+
+            console.log('Sending message:', sampleMessage);
+            socket.send(sampleMessage);
+        });
+
+        socket.addEventListener('message', function (message) {
+            console.log('Message from relay:', message.data);
+        });
+
+        socket.addEventListener('close', function (message) {
+            console.log('WebSocket connection closed:', message);
+        });
+
+    </script>
+
 </html>
